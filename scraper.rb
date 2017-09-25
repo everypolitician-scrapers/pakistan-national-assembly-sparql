@@ -16,6 +16,10 @@ rescue RestClient::Exception => e
   raise "Wikidata query #{query} failed: #{e.message}"
 end
 
+def wikidata_id(url)
+  url.to_s.split('/').last
+end
+
 memberships_query = <<EOQ
 SELECT DISTINCT ?item ?itemLabel ?start_date ?end_date ?constituency ?constituencyLabel ?party ?partyLabel WHERE {
   ?item p:P39 ?statement.
@@ -30,12 +34,14 @@ EOQ
 
 data = sparql(memberships_query).map(&:to_h).map do |r|
   {
-    id:           r[:item].split('/').last,
-    name:         r[:itemlabel],
-    start_date:   r[:start_date].to_s[0..9],
-    end_date:     r[:end_date].to_s[0..9],
-    constituency: r[:constituencylabel],
-    party:        r[:partylabel],
+    id:              wikidata_id(r[:item]),
+    name:            r[:itemlabel],
+    start_date:      r[:start_date].to_s[0..9],
+    end_date:        r[:end_date].to_s[0..9],
+    constituency:    r[:constituencylabel],
+    constituency_id: wikidata_id(r[:constituency]),
+    party:           r[:partylabel],
+    party_id:        wikidata_id(r[:party]),
   }
 end
 
