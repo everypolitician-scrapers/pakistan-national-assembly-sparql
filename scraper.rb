@@ -17,12 +17,13 @@ rescue RestClient::Exception => e
 end
 
 memberships_query = <<EOQ
-SELECT DISTINCT ?item ?itemLabel ?start_date ?end_date ?constituency ?constituencyLabel WHERE {
+SELECT DISTINCT ?item ?itemLabel ?start_date ?end_date ?constituency ?constituencyLabel ?party ?partyLabel WHERE {
   ?item p:P39 ?statement.
   ?statement ps:P39 wd:Q33512801.
   OPTIONAL { ?statement pq:P580 ?start_date. }
   OPTIONAL { ?statement pq:P582 ?end_date. }
   OPTIONAL { ?statement pq:P768 ?constituency. }
+  OPTIONAL { ?statement pq:P4100 ?party. }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }
 EOQ
@@ -34,6 +35,7 @@ data = sparql(memberships_query).map(&:to_h).map do |r|
     start_date:   r[:start_date].to_s[0..9],
     end_date:     r[:end_date].to_s[0..9],
     constituency: r[:constituencylabel],
+    party:        r[:partylabel],
   }
 end
 
